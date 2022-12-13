@@ -7,23 +7,62 @@ namespace dae {
 	Renderer::Renderer(SDL_Window* pWindow) :
 		m_pWindow(pWindow)
 	{
-		//Initialize
 		SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
 
-		//Initialize DirectX pipeline
+		m_Camera.Initialize(45.f, { .0f,.0f, -10.f }, static_cast<float>(m_Width) / m_Height);
+
+
 		const HRESULT result = InitializeDirectX();
 		if (result == S_OK)
 		{
 			m_IsInitialized = true;
 			std::cout << "DirectX is initialized and ready!\n";
-			// Create mesh
-			std::vector<Vertex> vertices
-			{
-				{ { 0.0f, 0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f } },
-				{ { 0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f } },
-				{ { -0.5f, -0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f } }
+			std::vector<Vertex> vertices{
+			Vertex{
+				{-3.f,3.f,-2.f},
+				{1},
+				{0, 0}
+			},
+			Vertex{
+				{0.f,3.f,-2.f},
+				{1},
+				{0.5f, 0}},
+			Vertex{
+				{3.f,3.f,-2.f},
+				{1},
+				{1, 0}},
+			Vertex{
+				{-3.f,0.f,-2.f},
+				{1},
+				{0, 0.5f}},
+			Vertex{
+				{0.f,0.f,-2.f},
+				{1},
+				{0.5f, 0.5f}},
+			Vertex{
+				{3.f,0.f,-2.f},
+				{1},
+				{1, 0.5f}},
+			Vertex{
+				{-3.f,-3.f,-2.f},
+				{1},
+				{0, 1}},
+			Vertex{
+				{0.f,-3.f,-2.f},
+				{1},
+				{0.5f, 1}},
+			Vertex{
+				{3.f,-3.f,-2.f},
+				{1},
+				{1,1}}
 			};
-			std::vector<uint32_t> indices{ 0, 1, 2 };
+
+
+			std::vector<uint32_t> indices{
+				3,0,1,	1,4,3,	4,1,2,
+				2,5,4,	6,3,4,	4,7,6,
+				7,4,5,	5,8,7
+			};
 
 			m_pMesh = new Mesh{ m_pDevice, vertices, indices };
 		}
@@ -32,7 +71,7 @@ namespace dae {
 			std::cout << "DirectX initialization failed!\n";
 		}
 
-	
+
 	}
 
 	Renderer::~Renderer()
@@ -83,18 +122,16 @@ namespace dae {
 		if (!m_IsInitialized)
 			return;
 
-		//Clear RTV & DSV
 
 		ColorRGB clearColor = ColorRGB{ 0, 0, 0.3f };
 		m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
-		//Render
 
-		m_pMesh->Render(m_pDeviceContext);
+		Matrix worldViewProjectionMatrix{ m_Camera.viewMatrix * m_Camera.projectionMatrix };
 
+		m_pMesh->Render(m_pDeviceContext, worldViewProjectionMatrix);
 
-		// Present Backbuffer
 
 		m_pSwapChain->Present(0, 0);
 	}
@@ -224,4 +261,14 @@ namespace dae {
 
 		return S_OK;
 	}
+
+	Matrix Renderer::MakeWorldMatrix()
+	{
+		const Vector3 position{ m_Camera.origin + Vector3{ 0, 0, 50 } };
+		const Vector3 rotation{ };
+		const Vector3 scale{ Vector3{ 1, 1, 1 } };
+		return Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
+	}
+
+
 }

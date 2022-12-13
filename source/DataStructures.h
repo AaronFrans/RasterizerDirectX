@@ -13,6 +13,7 @@ namespace dae
 	{
 		Vector3 position;
 		ColorRGB color;
+		Vector2 uv;
 	};
 
 
@@ -27,7 +28,9 @@ namespace dae
 		Mesh(Mesh&& other) = delete;
 		Mesh& operator=(Mesh&& other) = delete;
 
-		void Render(ID3D11DeviceContext* pDeviceContext) const;
+		void Render(ID3D11DeviceContext* pDeviceContext, Matrix worldView
+		) const;
+
 	private:
 		Effect* m_pEffect{};
 

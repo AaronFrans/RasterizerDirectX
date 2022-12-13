@@ -152,7 +152,13 @@ namespace dae {
 
 	Matrix Matrix::CreatePerspectiveFovLH(float fov, float aspect, float zn, float zf)
 	{
-		assert(false && "Not Implemented");
+		float frustrunDepth{ zf - zn };
+		return {
+			{1 / (fov * aspect), 0, 0, 0},
+			{0, 1 / fov, 0, 0},
+			{0, 0, zf / frustrunDepth, 1},
+			{0, 0,  -(zf * zn) / frustrunDepth, 0}
+		};
 		return {};
 	}
 
@@ -174,6 +180,12 @@ namespace dae {
 	Vector3 Matrix::GetTranslation() const
 	{
 		return data[3];
+	}
+
+	float* Matrix::CreateDirectXMatrix(Matrix matrix)
+	{
+
+		return &matrix.data[0][0];
 	}
 
 	Matrix Matrix::CreateTranslation(float x, float y, float z)

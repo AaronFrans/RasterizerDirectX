@@ -3,6 +3,10 @@
 struct SDL_Window;
 struct SDL_Surface;
 
+
+#include "Camera.h"
+#include "DataStructures.h"
+
 namespace dae
 {
 
@@ -40,10 +44,14 @@ namespace dae
 
 		Mesh* m_pMesh{ nullptr };
 
+		Camera m_Camera;
+
 
 
 		//DIRECTX
 		HRESULT InitializeDirectX();
+		Matrix MakeWorldMatrix();
+
 		//...
 	};
 }

@@ -45,6 +45,7 @@
     <ClInclude Include="Effect.h">
       <Filter>DataStructures</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -71,5 +72,8 @@
     <ClCompile Include="Effect.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>
