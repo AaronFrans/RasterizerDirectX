@@ -11,6 +11,7 @@ namespace dae
 {
 
 	class Mesh;
+	class Texture;
 
 	class Renderer final
 	{
@@ -47,10 +48,13 @@ namespace dae
 		Camera m_Camera;
 
 
+		Texture* m_pDiffuseMap{ };
+
 
 		//DIRECTX
 		HRESULT InitializeDirectX();
 		Matrix MakeWorldMatrix();
+		void SetTexturesForMesh();
 
 		//...
 	};

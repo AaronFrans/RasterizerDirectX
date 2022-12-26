@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Renderer.h"
 #include "DataStructures.h"
+#include "Texture.h"
 
 namespace dae {
 
@@ -61,10 +62,14 @@ namespace dae {
 			std::vector<uint32_t> indices{
 				3,0,1,	1,4,3,	4,1,2,
 				2,5,4,	6,3,4,	4,7,6,
-				7,4,5,	5,8,7
+				7,4,5,	7,5,8
 			};
 
 			m_pMesh = new Mesh{ m_pDevice, vertices, indices };
+
+			m_pDiffuseMap = Texture::LoadFromFile("Resources/uv_grid_2.png", m_pDevice);
+			SetTexturesForMesh();
+			
 		}
 		else
 		{
@@ -77,6 +82,8 @@ namespace dae {
 	Renderer::~Renderer()
 	{
 		delete m_pMesh;
+
+		delete m_pDiffuseMap;
 
 		if (m_pRenderTargetView)
 		{
@@ -268,6 +275,11 @@ namespace dae {
 		const Vector3 rotation{ };
 		const Vector3 scale{ Vector3{ 1, 1, 1 } };
 		return Matrix::CreateScale(scale) * Matrix::CreateRotation(rotation) * Matrix::CreateTranslation(position);
+	}
+
+	void Renderer::SetTexturesForMesh()
+	{
+		m_pMesh->InitTexture(m_pDiffuseMap);
 	}
 
 

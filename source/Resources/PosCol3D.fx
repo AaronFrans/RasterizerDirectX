@@ -3,6 +3,23 @@
 //------------------------------------------------
 float4x4 gWorldViewProj : WorldViewProjection;
 
+
+//------------------------------------------------
+// Textures
+//------------------------------------------------
+Texture2D gDiffuseMap : DiffuseMap;
+
+//------------------------------------------------
+// Sampling
+//------------------------------------------------
+SamplerState samPoint
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
+
 //------------------------------------------------
 // Input/Output Struct
 //------------------------------------------------
@@ -10,14 +27,14 @@ struct VS_INPUT
 {
 	float3 Position : POSITION;
 	float3 Color : COLOR;
-	float2 Uv : TEXCOORD0;
+	float2 Uv : TEXCOORD;
 };
 
 struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
-	float3 Color : COLOR;
-	float2 Uv : TEXCOORD0;
+	float3 ColorRGB : COLOR;
+	float2 Uv : TEXCOORD;
 };
 
 
@@ -28,9 +45,8 @@ VS_OUTPUT VS(VS_INPUT input)
 {
 	VS_OUTPUT output = (VS_OUTPUT)0;
 	float4 newPosition = float4(input.Position, 1.0f);
-	output.Position = mul(newPosition, gWorldViewProj);
-	output.Color = input.Color;
 	output.Uv = input.Uv;
+	output.Position = mul(newPosition, gWorldViewProj);
 	return output;
 }
 
@@ -39,7 +55,8 @@ VS_OUTPUT VS(VS_INPUT input)
 //------------------------------------------------
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-	return float4(input.Color, 1.0f);
+
+	return float4(gDiffuseMap.Sample(samPoint, input.Uv));
 }
 
 //------------------------------------------------
@@ -54,4 +71,6 @@ technique11 DefaultTechnique
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }
+
+
 

@@ -2,11 +2,11 @@
 #include "Vector3.h"
 #include "ColorRGB.h"
 #include <d3dx11effect.h>
-#include <d3dx11effect.h>
 
 namespace dae
 {
 	class Effect;
+	class Texture;
 
 
 	struct Vertex
@@ -28,8 +28,8 @@ namespace dae
 		Mesh(Mesh&& other) = delete;
 		Mesh& operator=(Mesh&& other) = delete;
 
-		void Render(ID3D11DeviceContext* pDeviceContext, Matrix worldView
-		) const;
+		void Render(ID3D11DeviceContext* pDeviceContext, Matrix worldView) const;
+		void InitTexture(Texture* pTexture);
 
 	private:
 		Effect* m_pEffect{};

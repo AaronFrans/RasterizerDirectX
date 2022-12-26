@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "DataStructures.h"
 #include "Effect.h"
+#include "Texture.h"
 #include <tchar.h>
 
 
@@ -22,8 +23,8 @@ namespace dae
 		vertexDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 		vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-		vertexDesc[2].SemanticName = "UV";
-		vertexDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vertexDesc[2].SemanticName = "TEXCOORD";
+		vertexDesc[2].Format = DXGI_FORMAT_R32G32_FLOAT;
 		vertexDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 		vertexDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
@@ -72,10 +73,13 @@ namespace dae
 
 		delete m_pEffect;
 
-		if (m_pIndexBuffer) m_pIndexBuffer->Release();
-		if (m_pVertexBuffer) m_pVertexBuffer->Release();
+		if (m_pIndexBuffer) 
+			m_pIndexBuffer->Release();
+		if (m_pVertexBuffer) 
+			m_pVertexBuffer->Release();
 
-		if (m_pInputLayout) m_pInputLayout->Release();
+		if (m_pInputLayout)
+			m_pInputLayout->Release();
 	}
 
 	void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix worldView) const
@@ -101,6 +105,11 @@ namespace dae
 			m_pEffect->GetTechnique()->GetPassByIndex(p)->Apply(0, pDeviceContext);
 			pDeviceContext->DrawIndexed(m_NumIndices, 0, 0);
 		}
+	}
+
+	void Mesh::InitTexture(Texture* pTexture)
+	{
+		m_pEffect->SetDiffuseMap(pTexture);
 	}
 
 
