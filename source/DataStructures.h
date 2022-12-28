@@ -9,18 +9,29 @@ namespace dae
 	class Texture;
 
 
-	struct Vertex
+	struct Vertex_In
 	{
 		Vector3 position;
 		ColorRGB color;
 		Vector2 uv;
+		Vector3 tangent;
+		Vector3 normal;
+	};
+	
+	struct Vertex_Out
+	{
+		Vector3 position;
+		ColorRGB color;
+		Vector2 uv;
+		Vector3 tangent;
+		Vector3 normal;
 	};
 
 
 	class Mesh final
 	{
 	public:
-		Mesh(ID3D11Device* pDevice, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+		Mesh(ID3D11Device* pDevice, const std::vector<Vertex_In>& vertices, const std::vector<uint32_t>& indices, Effect* effect);
 		~Mesh();
 
 		Mesh(const Mesh& other) = delete;
@@ -28,8 +39,14 @@ namespace dae
 		Mesh(Mesh&& other) = delete;
 		Mesh& operator=(Mesh&& other) = delete;
 
-		void Render(ID3D11DeviceContext* pDeviceContext, Matrix worldView) const;
-		void InitTexture(Texture* pTexture);
+		void Render(ID3D11DeviceContext* pDeviceContext, Matrix worldView, Matrix invView) const;
+
+		void TogleSampleState();
+
+		Matrix GetWorldMatrix();
+		void  SetWorldMatrix(Matrix& m_WorldMatrix);
+
+		void RotateMesh(float rotation);
 
 	private:
 		Effect* m_pEffect{};
@@ -41,6 +58,7 @@ namespace dae
 		uint32_t m_NumIndices{};
 		ID3D11Buffer* m_pIndexBuffer{};
 
+		Matrix m_WorldMatrix{};
 	};
 }
 

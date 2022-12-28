@@ -27,6 +27,8 @@ namespace dae
 		void Update(const Timer* pTimer);
 		void Render() const;
 
+
+		void ToggleSampleState();
 	private:
 		SDL_Window* m_pWindow{};
 
@@ -43,12 +45,17 @@ namespace dae
 		ID3D11Resource* m_pRenderTargetBuffer{ nullptr };
 		ID3D11RenderTargetView* m_pRenderTargetView{ nullptr };
 
-		Mesh* m_pMesh{ nullptr };
+
+		std::vector<Mesh*> m_pMeshes{};
 
 		Camera m_Camera;
 
 
 		Texture* m_pDiffuseMap{ };
+		Texture* m_pFireDiffuseMap{ };
+		Texture* m_pSpecularMap{ };
+		Texture* m_pNormalMap{ };
+		Texture* m_pGlossinessMap{ };
 
 
 		//DIRECTX
@@ -57,5 +64,7 @@ namespace dae
 		void SetTexturesForMesh();
 
 		//...
+
+		void InitMeshes();
 	};
 }

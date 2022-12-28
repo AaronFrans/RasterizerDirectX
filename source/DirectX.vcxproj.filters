@@ -11,6 +11,9 @@
     <Filter Include="DataStructures">
       <UniqueIdentifier>{607c5067-2e6a-4b51-bd8c-ed119d4f13e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DataStructures\Effects">
+      <UniqueIdentifier>{de70ea31-21d8-42a2-89a5-325ee3f525f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
@@ -42,14 +45,23 @@
     <ClInclude Include="DataStructures.h">
       <Filter>DataStructures</Filter>
     </ClInclude>
-    <ClInclude Include="Effect.h">
-      <Filter>DataStructures</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>DataStructures</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Effect.h">
+      <Filter>DataStructures\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectShader.h">
+      <Filter>DataStructures\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectTransparency.h">
+      <Filter>DataStructures\Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -74,11 +86,17 @@
     <ClCompile Include="DataStructures.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
-    <ClCompile Include="Effect.cpp">
-      <Filter>DataStructures</Filter>
-    </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>DataStructures</Filter>
+    </ClCompile>
+    <ClCompile Include="Effect.cpp">
+      <Filter>DataStructures\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectTransparency.cpp">
+      <Filter>DataStructures\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectShader.cpp">
+      <Filter>DataStructures\Effects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

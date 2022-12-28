@@ -1,7 +1,12 @@
 #include "pch.h"
 #include "Renderer.h"
 #include "DataStructures.h"
+#include "EffectShader.h"
+#include "EffectTransparency.h"
 #include "Texture.h"
+#include "Utils.h"
+
+#define USE_OBJ
 
 namespace dae {
 
@@ -10,7 +15,7 @@ namespace dae {
 	{
 		SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
 
-		m_Camera.Initialize(45.f, { .0f,.0f, -10.f }, static_cast<float>(m_Width) / m_Height);
+		m_Camera.Initialize(45.f, { .0f,.0f, 0.f }, static_cast<float>(m_Width) / m_Height);
 
 
 		const HRESULT result = InitializeDirectX();
@@ -18,57 +23,14 @@ namespace dae {
 		{
 			m_IsInitialized = true;
 			std::cout << "DirectX is initialized and ready!\n";
-			std::vector<Vertex> vertices{
-			Vertex{
-				{-3.f,3.f,-2.f},
-				{1},
-				{0, 0}
-			},
-			Vertex{
-				{0.f,3.f,-2.f},
-				{1},
-				{0.5f, 0}},
-			Vertex{
-				{3.f,3.f,-2.f},
-				{1},
-				{1, 0}},
-			Vertex{
-				{-3.f,0.f,-2.f},
-				{1},
-				{0, 0.5f}},
-			Vertex{
-				{0.f,0.f,-2.f},
-				{1},
-				{0.5f, 0.5f}},
-			Vertex{
-				{3.f,0.f,-2.f},
-				{1},
-				{1, 0.5f}},
-			Vertex{
-				{-3.f,-3.f,-2.f},
-				{1},
-				{0, 1}},
-			Vertex{
-				{0.f,-3.f,-2.f},
-				{1},
-				{0.5f, 1}},
-			Vertex{
-				{3.f,-3.f,-2.f},
-				{1},
-				{1,1}}
-			};
 
+			m_pDiffuseMap = Texture::LoadFromFile("Resources/vehicle_diffuse.png", m_pDevice);
+			m_pFireDiffuseMap = Texture::LoadFromFile("Resources/fireFX_diffuse.png", m_pDevice);
+			m_pGlossinessMap = Texture::LoadFromFile("Resources/vehicle_gloss.png", m_pDevice);
+			m_pNormalMap = Texture::LoadFromFile("Resources/vehicle_normal.png", m_pDevice);
+			m_pSpecularMap = Texture::LoadFromFile("Resources/vehicle_specular.png", m_pDevice);
 
-			std::vector<uint32_t> indices{
-				3,0,1,	1,4,3,	4,1,2,
-				2,5,4,	6,3,4,	4,7,6,
-				7,4,5,	7,5,8
-			};
-
-			m_pMesh = new Mesh{ m_pDevice, vertices, indices };
-
-			m_pDiffuseMap = Texture::LoadFromFile("Resources/uv_grid_2.png", m_pDevice);
-			SetTexturesForMesh();
+			InitMeshes();
 			
 		}
 		else
@@ -81,9 +43,16 @@ namespace dae {
 
 	Renderer::~Renderer()
 	{
-		delete m_pMesh;
+		for (auto& mesh : m_pMeshes)
+		{
+			delete mesh;
+		}
 
 		delete m_pDiffuseMap;
+		delete m_pFireDiffuseMap;
+		delete m_pSpecularMap;
+		delete m_pNormalMap;
+		delete m_pGlossinessMap;
 
 		if (m_pRenderTargetView)
 		{
@@ -120,7 +89,13 @@ namespace dae {
 
 	void Renderer::Update(const Timer* pTimer)
 	{
+		m_Camera.Update(pTimer);
 
+		const float meshRotation{ 45.0f * pTimer->GetElapsed() * TO_RADIANS };
+		for (auto& mesh : m_pMeshes)
+		{
+			mesh->RotateMesh(meshRotation);
+		}
 	}
 
 
@@ -134,13 +109,25 @@ namespace dae {
 		m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
 		m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
+		for (auto& mesh : m_pMeshes)
+		{
+			Matrix worldViewProjectionMatrix{ mesh->GetWorldMatrix() * m_Camera.viewMatrix * m_Camera.projectionMatrix };
 
-		Matrix worldViewProjectionMatrix{ m_Camera.viewMatrix * m_Camera.projectionMatrix };
-
-		m_pMesh->Render(m_pDeviceContext, worldViewProjectionMatrix);
+			mesh->Render(m_pDeviceContext, worldViewProjectionMatrix, m_Camera.invViewMatrix);
+		}
+		
 
 
 		m_pSwapChain->Present(0, 0);
+	}
+
+	void Renderer::ToggleSampleState()
+	{
+		for (auto& mesh : m_pMeshes)
+		{
+			mesh->TogleSampleState();
+		}
+	
 	}
 
 	HRESULT Renderer::InitializeDirectX()
@@ -279,7 +266,106 @@ namespace dae {
 
 	void Renderer::SetTexturesForMesh()
 	{
-		m_pMesh->InitTexture(m_pDiffuseMap);
+
+	}
+
+	void Renderer::InitMeshes()
+	{
+#ifdef USE_OBJ
+
+
+		Matrix worldMatrix = MakeWorldMatrix();
+
+#pragma region Vehicle
+		std::vector<uint32_t> indecesVehicle;
+		std::vector<Vertex_In> verticesVehicle;
+		Utils::ParseOBJ("Resources/vehicle.obj", verticesVehicle, indecesVehicle);
+		EffectShader* pShader = new EffectShader(m_pDevice, L"Resources/Shader.fx");
+
+		pShader->SetDiffuseMap(m_pDiffuseMap);
+		pShader->SetNormalMap(m_pNormalMap);
+		pShader->SetGlossinessMap(m_pGlossinessMap);
+		pShader->SetSpecularMap(m_pSpecularMap);
+
+		Mesh* pMeshVehicle = new Mesh(m_pDevice, verticesVehicle, indecesVehicle, pShader);
+
+
+		pMeshVehicle->SetWorldMatrix(worldMatrix);
+
+		m_pMeshes.emplace_back(pMeshVehicle);
+#pragma endregion
+
+#pragma region Fire
+		std::vector<uint32_t> indecesFire;
+		std::vector<Vertex_In> verticesFire;
+		Utils::ParseOBJ("Resources/fireFX.obj", verticesFire, indecesFire);
+
+		EffectTransparency* pTransparent = new EffectTransparency(m_pDevice, L"Resources/Transparency.fx");
+		pTransparent->SetDiffuseMap(m_pFireDiffuseMap);
+
+		Mesh* pMeshFire = new Mesh(m_pDevice, verticesFire, indecesFire, pTransparent);
+
+		pMeshFire->SetWorldMatrix(worldMatrix);
+
+		m_pMeshes.emplace_back(pMeshFire);
+#pragma endregion
+
+
+
+
+#else
+		std::vector<Vertex_In> vertices{
+		Vertex_In{
+			{-3.f,3.f,-2.f},
+			{1},
+			{0, 0}
+		},
+		Vertex_In{
+			{0.f,3.f,-2.f},
+			{1},
+			{0.5f, 0}},
+		Vertex_In{
+			{3.f,3.f,-2.f},
+			{1},
+			{1, 0}},
+		Vertex_In{
+			{-3.f,0.f,-2.f},
+			{1},
+			{0, 0.5f}},
+		Vertex_In{
+			{0.f,0.f,-2.f},
+			{1},
+			{0.5f, 0.5f}},
+		Vertex_In{
+			{3.f,0.f,-2.f},
+			{1},
+			{1, 0.5f}},
+		Vertex_In{
+			{-3.f,-3.f,-2.f},
+			{1},
+			{0, 1}},
+		Vertex_In{
+			{0.f,-3.f,-2.f},
+			{1},
+			{0.5f, 1}},
+		Vertex_In{
+			{3.f,-3.f,-2.f},
+			{1},
+			{1,1}}
+	};
+
+
+		std::vector<uint32_t> indices{
+			3,0,1,	1,4,3,	4,1,2,
+			2,5,4,	6,3,4,	4,7,6,
+			7,4,5,	7,5,8
+		};
+
+		m_pMesh = new Mesh{ m_pDevice, vertices, indices };
+#endif // DEBUG
+
+		
+
 	}
 
 

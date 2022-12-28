@@ -1,7 +1,7 @@
 #include "pch.h"
 
 #if defined(_DEBUG)
-//#include "vld.h"
+#include "vld.h"
 #endif
 
 #undef main
@@ -58,6 +58,8 @@ int main(int argc, char* args[])
 			case SDL_KEYUP:
 				//Test for a key
 				//if (e.key.keysym.scancode == SDL_SCANCODE_X)
+				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
+					pRenderer->ToggleSampleState();
 				break;
 			default: ;
 			}

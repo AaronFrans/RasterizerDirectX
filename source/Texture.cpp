@@ -101,6 +101,8 @@ namespace dae
 
 		return {};
 	}
+
+
 	ID3D11ShaderResourceView* Texture::GetShaderResourceView()
 	{
 		return m_pShaderResourceView;

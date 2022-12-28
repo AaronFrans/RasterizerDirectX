@@ -182,12 +182,6 @@ namespace dae {
 		return data[3];
 	}
 
-	float* Matrix::CreateDirectXMatrix(Matrix matrix)
-	{
-
-		return &matrix.data[0][0];
-	}
-
 	Matrix Matrix::CreateTranslation(float x, float y, float z)
 	{
 		return CreateTranslation({ x, y, z });

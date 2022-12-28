@@ -1,16 +1,17 @@
 #include "pch.h"
 #include "DataStructures.h"
-#include "Effect.h"
+#include "EffectShader.h"
+#include "EffectTransparency.h"
 #include "Texture.h"
 #include <tchar.h>
 
 
 namespace dae
 {
-	Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
-		:m_pEffect{ new Effect{pDevice, L"Resources/PosCol3D.fx"} }
+	Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_In>& vertices, const std::vector<uint32_t>& indices, Effect* effect)
+		:m_pEffect{ effect}
 	{
-		static constexpr uint32_t numElements{ 3 };
+		static constexpr uint32_t numElements{ 5 };
 		D3D11_INPUT_ELEMENT_DESC vertexDesc[numElements]{};
 
 		vertexDesc[0].SemanticName = "POSITION";
@@ -28,6 +29,16 @@ namespace dae
 		vertexDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 		vertexDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
+		vertexDesc[3].SemanticName = "TANGENT";
+		vertexDesc[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vertexDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		vertexDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
+		vertexDesc[4].SemanticName = "NORMAL";
+		vertexDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vertexDesc[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		vertexDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
 		D3DX11_PASS_DESC passDesc{};
 		m_pEffect->GetTechnique()->GetPassByIndex(0)->GetDesc(&passDesc);
 
@@ -43,7 +54,7 @@ namespace dae
 
 		D3D11_BUFFER_DESC bd{};
 		bd.Usage = D3D11_USAGE_IMMUTABLE;
-		bd.ByteWidth = sizeof(Vertex) * static_cast<uint32_t>(vertices.size());
+		bd.ByteWidth = sizeof(Vertex_In) * static_cast<uint32_t>(vertices.size());
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bd.CPUAccessFlags = 0;
 		bd.MiscFlags = 0;
@@ -82,16 +93,17 @@ namespace dae
 			m_pInputLayout->Release();
 	}
 
-	void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix worldView) const
+	void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix worldViewProj, Matrix invView) const
 	{
 
-		m_pEffect->SetMatrixData(worldView);
+		m_pEffect->SetWorldViewProjMatrixData(worldViewProj);
+		m_pEffect->SetWorldMatrixData(m_WorldMatrix);
 
 		pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		pDeviceContext->IASetInputLayout(m_pInputLayout);
 
-		constexpr UINT stride{ sizeof(Vertex) };
+		constexpr UINT stride{ sizeof(Vertex_In) };
 		constexpr UINT offset{};
 		pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 
@@ -107,10 +119,30 @@ namespace dae
 		}
 	}
 
-	void Mesh::InitTexture(Texture* pTexture)
+	
+
+	void Mesh::TogleSampleState()
 	{
-		m_pEffect->SetDiffuseMap(pTexture);
+		m_pEffect->TogleSampleState();
 	}
+
+	Matrix Mesh::GetWorldMatrix()
+	{
+		return m_WorldMatrix;
+	}
+
+	void Mesh::SetWorldMatrix(Matrix& worldMatrix)
+	{
+
+		m_WorldMatrix = worldMatrix;
+	}
+
+	void Mesh::RotateMesh(float rotation)
+	{
+		m_WorldMatrix = Matrix::CreateRotationY(rotation) * m_WorldMatrix;
+	}
+
+
 
 
 
